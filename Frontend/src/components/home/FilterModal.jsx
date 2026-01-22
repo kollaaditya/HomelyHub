@@ -4,8 +4,6 @@ import { useDispatch } from "react-redux";
 import { propertyActions } from "../../store/Property/property-slice";
 import { getAllProperties } from "../../store/Property/property-action";
 import "../../css/FilterModal.css";
-import "react-input-range/lib/css/index.css";
-import InputRange from "react-input-range";
 
 const FilterModal = ({ onClose }) => {
   const dispatch = useDispatch();
