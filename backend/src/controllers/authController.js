@@ -29,6 +29,7 @@ const signinToken = a => {
         }), c;
     }, signup = async (a, b) => {
         try {
+            console.log('Signup request received:', a.body);
             const c = await User['create']({
                 'name': a['body']['name'],
                 'email': a['body']['email'],
@@ -37,23 +38,34 @@ const signinToken = a => {
                 'passwordConfirm': a['body']['passwordConfirm'],
                 'avatar': { 'url': a['body']['avatar'] || defaultAvatarUrl }
             });
+            console.log('User created successfully:', c._id);
             createSendToken(c, 0xc9, b);
         } catch (d) {
+            console.error('Signup error:', d.message);
             b['status'](0x190)['json']({ 'message': d['message'] });
         }
     }, login = async (a, b) => {
         try {
+            console.log('Login request received:', a.body);
             const {
                 email: c,
                 password: d
             } = a['body'];
-            if (!c || !d)
+            if (!c || !d) {
+                console.log('Missing email or password');
                 throw new Error('Please\x20Provide\x20email\x20and\x20password');
+            }
+            console.log('Looking for user with email:', c);
             const e = await User['findOne']({ 'email': c })['select']('+password');
-            if (!e || await e['correctPassword'](d, e['password']) === ![])
+            console.log('User found:', e ? 'Yes' : 'No');
+            if (!e || await e['correctPassword'](d, e['password']) === ![]) {
+                console.log('Invalid credentials');
                 throw new Error('Incorrect\x20email\x20or\x20password');
+            }
+            console.log('Login successful, creating token');
             createSendToken(e, 0xc8, b);
         } catch (f) {
+            console.error('Login error:', f.message);
             b['status'](0x190)['json']({
                 'status': 'fail',
                 'message': f['message']

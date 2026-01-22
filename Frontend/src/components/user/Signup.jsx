@@ -1,5 +1,5 @@
 import React,{Fragment,useState,useEffect} from 'react'
-import toast from "react-hot-toast"
+import toast, { Toaster } from "react-hot-toast"
 import {useDispatch,useSelector} from "react-redux";
 import {useNavigate} from "react-router-dom";
 import {getSignup} from "../../store/User/user-action";
@@ -9,7 +9,7 @@ import { userActions } from '../../store/User/user-slice';
 const Signup = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const {isAuthenticated,errors} = useSelector((state)=>state.user);
+    const {isAuthenticated,errors,loading} = useSelector((state)=>state.user);
     const [user,setUser] = useState({
         name:"",
         email:"",
@@ -22,16 +22,39 @@ const Signup = () => {
 
     const submitHandler = (e)=>{
         e.preventDefault();
+        console.log('Submit handler called');
+        
+        if(!name || !email || !password || !confirmPassword || !phoneNumber){
+            toast.error("Please fill all fields");
+            return;
+        }
+        
         if(password !== confirmPassword){
             toast.error("Passwords do not match");
             return;
         }
-        dispatch(getSignup(user))
+        
+        if(password.length < 6){
+            toast.error("Password must be at least 6 characters");
+            return;
+        }
+        
+        const userData = {
+            name,
+            email,
+            password,
+            passwordConfirm: confirmPassword,
+            phoneNumber
+        };
+        
+        console.log("Sending signup data:", userData);
+        dispatch(getSignup(userData))
     }
 
     const onChange = (e) =>{
       setUser({...user,[e.target.name]:e.target.value})
     }
+    
     useEffect(()=>{
         if(errors){
             toast.error(errors);
@@ -42,10 +65,12 @@ const Signup = () => {
             toast.success("User registered successfully")
         }
     },[isAuthenticated,errors,navigate,dispatch])
+    
   return (
     <Fragment>
+        <Toaster position="top-right" />
         <div className='row wrapper'>
-            <form onSubmit={submitHandler} encType='multipart/form-data' className='col-10 col-lg-5'>
+            <form onSubmit={submitHandler} className='col-10 col-lg-5'>
             <h1 className='mb-3'>Register</h1>
             <div className='form-group'>
                 <label htmlFor='name_field'>Name</label>
@@ -67,14 +92,11 @@ const Signup = () => {
                 <label htmlFor='phoneNumber_field'>Phone Number</label>
                 <input type='text' id='phoneNumber_field' className='form-control' name='phoneNumber' value={phoneNumber} onChange={onChange}/>
             </div>
-            <button id='register_button' type='submit' className='btn btn-block py-3'>REGISTER</button>
-            
+            <button id='register_button' type='submit' className='btn btn-block py-3' disabled={loading}>
+                {loading ? 'REGISTERING...' : 'REGISTER'}
+            </button>
             </form>
-
-
-
         </div>
-      
     </Fragment>
   )
 }

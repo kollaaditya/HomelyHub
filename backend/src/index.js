@@ -15,6 +15,12 @@ app['use'](a3b({
     'limit': '100mb',
     'extended': !![]
 })), app['use'](a3c());
+
+// Add request logging middleware
+app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`, req.body);
+    next();
+});
 const port = process['env']['PORT'] || 0x1f91;
 a3d(), app['use']('/api/v1/rent/user', router), app['use']('/api/v1/rent/listing', propertyRouter), app['use']('/api/v1/rent/user/booking', bookingRouter), app['listen'](port, () => {
     console['log']('App\x20running\x20on\x20port:\x20' + port);

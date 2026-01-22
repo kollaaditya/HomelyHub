@@ -21,30 +21,52 @@ class APIFeatures {
     }
     ['search']() {
         let a = {}, b = { ...this['queryString'] };
-        return a = b['city'] ? {
+        
+        // Helper function to parse DD/MM/YYYY to Date object
+        const parseDate = (dateStr) => {
+            if (!dateStr) return null;
+            const [day, month, year] = dateStr.split('/');
+            return new Date(year, month - 1, day); // month is 0-indexed
+        };
+        
+        a = b['city'] ? {
             '$or': [
                 { 'address.city': b['city']['toLowerCase']()['replaceAll']('\x20', '') },
                 { 'address.state': b['city']['toLowerCase']()['replaceAll']('\x20', '') },
                 { 'address.area': b['city']['toLowerCase']()['replaceAll']('\x20', '') }
             ]
-        } : {}, b['guests'] && (a['maximumGuest'] = { '$gte': b['guests'] }, b['guests']), b['dateIn'] && b['dateOut'] && (a['$and'] = [{
-                'currentBookings': {
-                    '$not': {
-                        '$elemMatch': {
-                            '$or': [
-                                {
-                                    'fromDate': { '$lt': b['dateOut'] },
-                                    'toDate': { '$gt': b['dateIn'] }
-                                },
-                                {
-                                    'fromDate': { '$lt': b['dateIn'] },
-                                    'toDate': { '$gt': b['dateIn'] }
-                                }
-                            ]
+        } : {};
+        
+        b['guests'] && (a['maximumGuest'] = { '$gte': b['guests'] });
+        
+        if (b['dateIn'] && b['dateOut']) {
+            const dateIn = parseDate(b['dateIn']);
+            const dateOut = parseDate(b['dateOut']);
+            
+            if (dateIn && dateOut) {
+                a['$and'] = [{
+                    'currentBookings': {
+                        '$not': {
+                            '$elemMatch': {
+                                '$or': [
+                                    {
+                                        'fromDate': { '$lt': dateOut },
+                                        'toDate': { '$gt': dateIn }
+                                    },
+                                    {
+                                        'fromDate': { '$lt': dateIn },
+                                        'toDate': { '$gt': dateIn }
+                                    }
+                                ]
+                            }
                         }
                     }
-                }
-            }]), this['query'] = this['query']['find'](a), this;
+                }];
+            }
+        }
+        
+        this['query'] = this['query']['find'](a);
+        return this;
     }
     ['paginate']() {
         let a = this['queryString']['page'] * 0x1 || 0x1, b = this['queryString']['limit'] * 0x1 || 0xc, c = (a - 0x1) * b;

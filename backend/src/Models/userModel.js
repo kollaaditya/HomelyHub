@@ -37,14 +37,16 @@ const userSchema = new a6a['Schema']({
     },
     'passwordConfirm': {
         'type': String,
-        'require': [
+        'required': [
             !![],
-            'Plesae\x20confim\x20your\x20Password'
+            'Please\x20confirm\x20your\x20Password'
         ],
-        'validate': function (a) {
-            return a === this['password'];
-        },
-        'message': 'Password\x20are\x20not\x20same!'
+        'validate': {
+            'validator': function (a) {
+                return a === this['password'];
+            },
+            'message': 'Passwords\x20are\x20not\x20the\x20same!'
+        }
     },
     'phoneNumber': {
         'type': String,
@@ -60,9 +62,16 @@ const userSchema = new a6a['Schema']({
     'passwordResetExpires': Date
 }, { 'timestamps': !![] });
 userSchema['pre']('save', async function (a) {
-    if (!this['isModified']('password'))
+    console.log('Pre-save middleware triggered');
+    if (!this['isModified']('password')) {
+        console.log('Password not modified, skipping hash');
         return a();
-    this['password'] = await a6c['hash'](this['password'], 0xc), this['passwordConfirm'] = undefined, a();
+    }
+    console.log('Hashing password...');
+    this['password'] = await a6c['hash'](this['password'], 0xc);
+    this['passwordConfirm'] = undefined;
+    console.log('Password hashed successfully');
+    a();
 }), userSchema['methods']['correctPassword'] = async function (a, b) {
     return await a6c['compare'](a, b);
 }, userSchema['methods']['changedPasswordAfter'] = function (a) {

@@ -1,10 +1,14 @@
 // FilterModal.js
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { propertyActions } from "../../store/Property/property-slice";
+import { getAllProperties } from "../../store/Property/property-action";
 import "../../css/FilterModal.css";
 import "react-input-range/lib/css/index.css";
 import InputRange from "react-input-range";
 
 const FilterModal = ({ onClose }) => {
+  const dispatch = useDispatch();
   const [priceRange, setPriceRange] = useState({ min: 600, max: 30000 });
   const [propertyType, setPropertyType] = useState("");
   const [roomType, setRoomType] = useState("");
@@ -25,12 +29,18 @@ const FilterModal = ({ onClose }) => {
   };
 
   const handleFilterChange = () => {
-    console.log("Applied Filters:", {
-      priceRange,
-      propertyType,
-      roomType,
-      amenities,
-    });
+    const filters = {
+      minPrice: priceRange.min,
+      maxPrice: priceRange.max,
+      ...(propertyType && { propertyType }),
+      ...(roomType && { roomType }),
+      ...(amenities.length > 0 && { amenities }),
+      page: 1
+    };
+    
+    dispatch(propertyActions.updateSearchParams(filters));
+    dispatch(getAllProperties());
+    onClose();
   };
 
   const propertyTypeOptions = [
@@ -65,6 +75,10 @@ const FilterModal = ({ onClose }) => {
     setPropertyType("");
     setRoomType("");
     setAmenities([]);
+    
+    dispatch(propertyActions.updateSearchParams({ page: 1 }));
+    dispatch(getAllProperties());
+    onClose();
   };
 
   const handleAmenitiesChange = (selectedAmenity) => {

@@ -4,9 +4,13 @@ import { axiosInstance } from "../../utils/axios";
 export const getSignup = (user) => async(dispatch) =>{
     try{
         dispatch(userActions.getSignupRequest());
+        console.log("Making signup request with:", user);
         const {data} = await axiosInstance.post("/v1/rent/user/signup",user);
+        console.log("Signup response:", data);
         dispatch(userActions.getSignupDetails(data.user))
     }catch(error){
+        console.error("Signup error:", error);
+        console.error("Error response:", error.response);
         const errorMessage = error.response?.data?.message || error.message || "Registration failed";
         dispatch(userActions.getError(errorMessage))
     }
